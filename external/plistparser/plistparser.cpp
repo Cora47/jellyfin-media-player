@@ -10,21 +10,19 @@
 QVariant PListParser::parsePList(QIODevice *device) {
 	QVariantMap result;
 	QDomDocument doc;
-	QString errorMessage;
-	int errorLine;
-	int errorColumn;
-	bool success = doc.setContent(device, false, &errorMessage, &errorLine, &errorColumn);
+    QDomDocument::ParseResult success = doc.setContent(device, QDomDocument::ParseOption::Default);
 	if (!success) {
 		qDebug() << "PListParser Warning: Could not parse PList file!";
-		qDebug() << "Error message: " << errorMessage;
-		qDebug() << "Error line: " << errorLine;
-		qDebug() << "Error column: " << errorColumn;
+		qDebug() << "Error message: " << success.errorMessage;
+		qDebug() << "Error line: " << success.errorLine;
+		qDebug() << "Error column: " << success.errorColumn;
 		return result;
 	}
 	QDomElement root = doc.documentElement();
 	if (root.attribute(QStringLiteral("version"), QStringLiteral("1.0")) != QLatin1String("1.0")) {
 		qDebug() << "PListParser Warning: plist is using an unknown format version, parsing might fail unexpectedly";
 	}
+    device->close();
 	return parseElement(root.firstChild().toElement());
 }
 

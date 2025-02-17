@@ -4,8 +4,13 @@
 // Qt includes
 #include <QDomElement>
 #include <QDomDocument>
+#include <QMetaType>
 #include <QDate>
 #include <QDateTime>
+#include <QByteArray>
+#include <QString>
+#include <QVariantMap>
+#include <QVariantList>
 
 static QDomElement textElement(QDomDocument& doc, const char *tagName, QString contents) {
 	QDomElement tag = doc.createElement(QString::fromLatin1(tagName));
@@ -15,25 +20,25 @@ static QDomElement textElement(QDomDocument& doc, const char *tagName, QString c
 
 static QDomElement serializePrimitive(QDomDocument &doc, const QVariant &variant) {
 	QDomElement result;
-	if (variant.type() == QVariant::Bool) {
+	if (variant.metaType() == QMetaType::fromType<bool>()) {
         result = doc.createElement(variant.toBool() ? QStringLiteral("true") : QStringLiteral("false"));
 	}
-	else if (variant.type() == QVariant::Date) {
+	else if (variant.metaType() == QMetaType::fromType<QDate>()) {
 		result = textElement(doc, "date", variant.toDate().toString(Qt::ISODate));
 	}
-	else if (variant.type() == QVariant::DateTime) {
+	else if (variant.metaType() == QMetaType::fromType<QDateTime>()) {
 		result = textElement(doc, "date", variant.toDateTime().toString(Qt::ISODate));
 	}
-	else if (variant.type() == QVariant::ByteArray) {
+	else if (variant.metaType() == QMetaType::fromType<QByteArray>()) {
 		result = textElement(doc, "data", QString::fromLatin1(variant.toByteArray().toBase64()));
 	}
-	else if (variant.type() == QVariant::String) {
+	else if (variant.metaType() == QMetaType::fromType<QString>()) {
 		result = textElement(doc, "string", variant.toString());
 	}
-	else if (variant.type() == QVariant::Int) {
+	else if (variant.metaType() == QMetaType::fromType<int>()) {
 		result = textElement(doc, "integer", QString::number(variant.toInt()));
 	}
-	else if (variant.canConvert(QVariant::Double)) {
+	else if (variant.canConvert<double>()) {
 		QString num;
 		num.setNum(variant.toDouble());
 		result = textElement(doc, "real", num);
@@ -42,10 +47,10 @@ static QDomElement serializePrimitive(QDomDocument &doc, const QVariant &variant
 }
 
 QDomElement PListSerializer::serializeElement(QDomDocument &doc, const QVariant &variant) {
-	if (variant.type() == QVariant::Map) {
+	if (variant.metaType() == QMetaType::fromType<QVariantMap>()) {
 		return serializeMap(doc, variant.toMap());
 	}
-	else if (variant.type() == QVariant::List) {
+	else if (variant.metaType() == QMetaType::fromType<QVariantList>()) {
 		 return serializeList(doc, variant.toList());
 	}
 	else {
